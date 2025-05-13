@@ -1,4 +1,3 @@
-// src/lib/authOptions.js
 import User from "../models/User";
 import dbConnect from "../lib/dbConnect";
 import GithubProvider from "next-auth/providers/github";
@@ -23,6 +22,7 @@ const authOptions = {
       },
       profile(profile) {
         if (!profile.email) {
+          console.error("GitHub profile is missing an email.");
           throw new Error("GitHub email is required");
         }
         return {
@@ -97,16 +97,26 @@ const authOptions = {
       }
     },
     async session({ session, token }) {
-      if (session?.user) {
-        session.user.id = token.sub;
+      try {
+        if (session?.user) {
+          session.user.id = token.sub;
+        }
+        return session;
+      } catch (error) {
+        console.error("❌ Session Error:", error);
+        return session;
       }
-      return session;
     },
     async jwt({ token, account }) {
-      if (account) {
-        token.provider = account.provider;
+      try {
+        if (account) {
+          token.provider = account.provider;
+        }
+        return token;
+      } catch (error) {
+        console.error("❌ JWT Error:", error);
+        return token;
       }
-      return token;
     }
   }
 };
